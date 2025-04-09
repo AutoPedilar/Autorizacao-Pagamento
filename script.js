@@ -91,12 +91,9 @@ document.addEventListener("DOMContentLoaded", function() {
           <option value="CONTA POUPANÇA">Conta Poupança</option>
         </select>
       `;
-      // Formata o campo "conta": se houver 5 dígitos, insere um hífen antes do último dígito.
+      // Formatação do campo "conta": se houver exatamente 5 dígitos, insere um hífen; caso contrário, exibe o valor completo.
       document.getElementById("conta").addEventListener("input", function() {
         let val = this.value.replace(/\D/g, '');
-        if (val.length > 5) {
-          val = val.slice(0, 5);
-        }
         if (val.length === 5) {
           this.value = val.slice(0, -1) + "-" + val.slice(-1);
         } else {
@@ -111,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function() {
         <input type="text" id="autorizador2" placeholder="Digite o nome do Autorizador 2" required>
       `;
     } else if (selected === "guia") {
-      // Para "guia", não exibe nenhum campo extra
       paymentDetails.innerHTML = ``;
     }
   });
@@ -164,10 +160,10 @@ document.addEventListener("DOMContentLoaded", function() {
       return;
     }
     
-    const pagamento = document.getElementById("pagamento").value.trim().toUpperCase();
-    const setor = document.getElementById("setor").value.trim().toUpperCase();
-    const categoria = document.getElementById("categoria").value.trim().toUpperCase();
+    let setor = document.getElementById("setor").value.trim();
+    let categoria = document.getElementById("categoria").value.trim();
     const relato = document.getElementById("relato").value.trim();
+    const pagamento = document.getElementById("pagamento").value.trim().toUpperCase();
 
     // Validações dos campos obrigatórios
     if (nome.length < 11) {
@@ -210,9 +206,9 @@ document.addEventListener("DOMContentLoaded", function() {
       alert("O campo 'Categoria' é obrigatório.");
       return;
     }
-    // Restrição: Se o Centro de Custo for "MOTORISTAS", as únicas categorias permitidas são "VALE COMBUSTÍVEL" ou "KM DESLOCAMENTO"
-    if (setor === "MOTORISTAS" && !(categoria === "VALE COMBUSTÍVEL" || categoria === "KM DESLOCAMENTO")) {
-      alert("Para o Centro de Custo 'Motoristas', as únicas opções de categoria permitidas são 'VALE COMBUSTÍVEL' e 'KM DESLOCAMENTO'.");
+    // Restrição: Se o Centro de Custo for "motoristas" (comparação em minúsculas), não deve ser possível selecionar "vale combustivel" ou "km deslocamento".
+    if (setor.toLowerCase() === "motoristas" && (categoria.toLowerCase() === "vale combustivel" || categoria.toLowerCase() === "km deslocamento")) {
+      alert("Para o Centro de Custo 'Motoristas', não é permitida a seleção das categorias 'Vale Combustível' e 'KM Deslocamento'.");
       return;
     }
     // Verifica se algum radio do grupo Nota Fiscal foi selecionado
@@ -310,15 +306,15 @@ document.addEventListener("DOMContentLoaded", function() {
       previewExtra = "";
     }
 
-    // Cálculo da diferença de dias usando Math.ceil para considerar frações de dia
+    // Cálculo da diferença de dias usando Math.ceil para tratar frações de dia
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const bgColor = diffDays <= 4 ? "#ff9999" : "#69C0AE";
     const formattedDataVenc = formatDateIsoToBrazil(dataVenc);
 
     // Reordenação na impressão:
-    // Primeiro: DATA DE VENCIMENTO, VALOR DA CONTA, NOME DO FAVORECIDO, seguido de uma linha em branco;
-    // Em seguida: NOME DO SOLICITANTE, CNPJ/CPF.
+    // Primeiro: DATA DE VENCIMENTO, VALOR DA CONTA, NOME DO FAVORECIDO, seguido de CNPJ/CPF (logo abaixo do favorecido) e uma linha em branco;
+    // Depois: NOME DO SOLICITANTE e os demais itens.
     let previewContent = `
       <div style="text-align:center; margin-bottom:1rem;">
         <img src="https://pedilar.com.br/wp-content/uploads/2021/08/pedilar-logo-c.png" style="max-height: 3rem;" alt="Pedilar Domiciliar">
@@ -326,9 +322,10 @@ document.addEventListener("DOMContentLoaded", function() {
       <p><strong>DATA DE VENCIMENTO:</strong> ${formatDateIsoToBrazil(dataVenc)}</p>
       <p><strong>VALOR DA CONTA:</strong> ${valor}</p>
       <p><strong>NOME DO FAVORECIDO:</strong> ${favorecidoU}</p>
+      <p><strong>CNPJ/CPF:</strong> ${cnpj.toUpperCase()}</p>
       <br>
       <p><strong>NOME DO SOLICITANTE:</strong> ${nomeU}</p>
-      <p><strong>CNPJ/CPF:</strong> ${cnpj.toUpperCase()}</p>
+      <p><strong>CENTRO DE CUSTO:</strong> ${setor}</p>
     `;
 
     // Se o pagamento adiantado for selecionado, inclui "DATA LIMITE PARA ENTREGA DA NF"
@@ -339,7 +336,6 @@ document.addEventListener("DOMContentLoaded", function() {
     previewContent += `
       <p><strong>MÉTODO DE PAGAMENTO:</strong> ${pagamento}</p>
       ${previewExtra}
-      <p><strong>CENTRO DE CUSTO:</strong> ${setor}</p>
       <p><strong>CATEGORIA:</strong> ${categoria}</p>
       <p style="white-space: pre-wrap;"><strong>RELATO:</strong><br>${relato}</p>
     `;
