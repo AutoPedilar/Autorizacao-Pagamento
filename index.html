@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autorização de Pagamento</title>
+  <!-- CSS principal -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" type="image/png" href="https://pedilar.com.br/wp-content/uploads/2021/08/FAVICON-1.png">
+  <!-- Biblioteca jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Biblioteca html2canvas (mantida para a mesclagem de PDFs, se necessário) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="https://pedilar.com.br/wp-content/uploads/2021/08/pedilar-logo-c.png" alt="Pedilar Domiciliar">
+    </div>
+    <nav class="menu">
+      <ul>
+        <li><a href="https://app.zapsign.com.br/acesso/entrar?..." target="_blank">ZapSign</a></li>
+        <li><a href="https://pedilar.tomticket.com/helpdesk" target="_blank">HelpDesk</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <!-- Título da Página -->
+  <div class="page-title">
+    <h1>Autorização de Pagamento</h1>
+  </div>
+  
+  <!-- Conteúdo principal: blocos lado a lado -->
+  <div class="content">
+    <!-- Dados para pagamento-->
+    <div id="dados-fornecedor" class="container">
+      <h2>Dados para Pagamento</h2>
+      <div class="formulario">
+        <input type="text" id="nome" placeholder="Nome do solicitante" required>
+        <div class="input-container">
+          <span class="currency-symbol"></span>
+          <input type="text" id="valor" placeholder="Valor da conta" required>
+        </div>
+        <input type="text" id="favorecido" placeholder="Nome do Favorecido" required>
+        <input type="text" id="cnpj" placeholder="CNPJ/CPF" required>
+        <h3>Data de Vencimento:</h3>
+        <input type="date" id="data" required>
+        <!-- Método de pagamento -->
+        <select name="pg" id="pagamento" required>
+          <option value="metodo">Método de Pagamento</option>
+          <option value="boleto">Boleto</option>
+          <option value="pix">Pix</option>
+          <option value="cartao">Cartão</option>
+          <option value="Transferência Bancária">Transferência Bancária</option>
+          <option value="Guia">Guia</option>
+          <option value="Dinheiro">Dinheiro</option>
+        </select>
+
+        <div id="paymentDetails"></div>
+        <div id="notaFiscalContainer" style="display: none;">
+          <label for="notaFiscalFile">Nota Fiscal em anexo:</label>
+          <input type="file" id="notaFiscalFile" accept="application/pdf">
+          <label for="notaFiscalDate">Data da Nota Fiscal:</label>
+          <input type="date" id="notaFiscalDate">
+        </div>
+        
+        <!-- Grupo de Radio Buttons para Nota Fiscal em Anexo -->
+        <div class="nota-fiscal-container">
+          <h3>Nota Fiscal em Anexo</h3>
+          <div class="radio-group">
+            <!-- Seus radios (Sim / Não / Pagamento Adiantado) -->
+            <div class="custom-radio">
+              <input type="radio" name="grupoOpcao" value="1" id="nf-sim">
+              <label for="nf-sim">Sim</label>
+            </div>
+            <div class="custom-radio">
+              <input type="radio" name="grupoOpcao" value="2" id="nf-nao">
+              <label for="nf-nao">Não se Aplica</label>
+            </div>
+            <div class="custom-radio">
+              <input type="radio" name="grupoOpcao" value="3" id="nf-adiantado">
+              <label for="nf-adiantado">Pagamento Adiantado</label>
+            </div>
+          </div>
+          <div id="radioDataAdiantadoContainer">
+            <label for="dataLimite">Data Limite da NF:</label>
+            <input type="text" id="dataLimite" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Centro de Custo -->
+    <div id="centro-custo" class="container">
+      <h2>Centro de Custo</h2>
+      <div class="formulario">
+        <select name="setor" id="setor" required>
+          <option value="">Centro de Custo</option>
+            <option value="Central 24 Horas">Central 24 Horas</option>
+            <option value="Corpo Clínico">Corpo Clínico</option>
+            <option value="Corpo Clínico Divinópolis">Corpo Clínico Divinópolis</option>
+            <option value="Custo E Finanças">Custo E Finanças</option>
+            <option value="Departamento Voluntariado">Departamento Voluntariado</option>
+            <option value="Diretoria Administrativo Financeira">Diretoria Administrativo Financeira</option>
+            <option value="Diretoria Clínica">Diretoria Clínica</option>
+            <option value="Diretoria Presidencia">Diretoria Presidencia</option>
+            <option value="Diretoria Relacionamento E Qualidade">Diretoria Relacionamento E Qualidade</option>
+            <option value="Enfermagem Adulto">Enfermagem Adulto</option>
+            <option value="Enfermagem Divinópolis">Enfermagem Divinópolis</option>
+            <option value="Enfermagem Pediátrico">Enfermagem Pediátrico</option>
+            <option value="Equipamentos">Equipamentos</option>
+            <option value="Equipe Multidissiplinar">Equipe Multidissiplinar</option>
+            <option value="Farmácia">Farmácia</option>
+            <option value="Farmácia Divinópolis">Farmácia Divinópolis</option>
+            <option value="Farmácia Uberlândia">Farmácia Uberlândia</option>
+            <option value="Faturamento">Faturamento</option>
+            <option value="Gerência Assistencial Adulto">Gerência Assistencial Adulto</option>
+            <option value="Gerência Assistencial Pediátrica">Gerência Assistencial Pediátrica</option>
+            <option value="Gerência Financeira">Gerência Financeira</option>
+            <option value="Gerência Relacionamento E Qualidade">Gerência Relacionamento E Qualidade</option>
+            <option value="Limpeza">Limpeza</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Motoristas">Motoristas</option>
+            <option value="Pré-faturamento">Pré-faturamento</option>
+            <option value="Qualidade">Qualidade</option>
+            <option value="Recepção">Recepção</option>
+            <option value="Relacionamento">Relacionamento</option>
+            <option value="Rh E Dp">Rh E Dp</option>
+            <option value="Sócios">Sócios</option>
+            <option value="Suprimentos E Infraestrutura">Suprimentos E Infraestrutura</option>
+            <option value="TI">TI</option>
+        </select>
+        
+        <select name="categoria" id="categoria" required>
+          <option value="">Categoria</option>
+          <option value="13º Salário">13º Salário</option>
+          <option value="Acessórios Para Atendimento (malas/conectores)">Acessórios Para Atendimento (malas/conectores)</option>
+          <option value="Adiantamento">Adiantamento</option>
+          <option value="Adiantamento A Fornecedores">Adiantamento A Fornecedores</option>
+          <option value="Administração De Antibióticos">Administração De Antibióticos</option>
+          <option value="Aumento De Capital">Aumento De Capital</option>
+          <option value="Alimentícios - Consumo">Alimentícios - Consumo</option>
+          <option value="Aluguel">Aluguel</option>
+          <option value="Análise Pluvial">Análise Pluvial</option>
+          <option value="Arquivo - Armazenamento De Documento">Arquivo - Armazenamento De Documento</option>
+          <option value="Associação De Classe">Associação De Classe</option>
+          <option value="Assessoria Contábil">Assessoria Contábil</option>
+          <option value="Assessoria Jurídica">Assessoria Jurídica</option>
+          <option value="Assistência Médica">Assistência Médica</option>
+          <option value="Auditorias">Auditorias</option>
+          <option value="Brindes">Brindes</option>
+          <option value="COFINS">COFINS</option>
+          <option value="Certificação Digital">Certificação Digital</option>
+          <option value="Cânulas">Cânulas</option>
+          <option value="Condução - Pedágio - Estacionamento">Condução - Pedágio - Estacionamento</option>
+          <option value="Congressos, Treinamentos E Cursos">Congressos, Treinamentos E Cursos</option>
+          <option value="Condomínio">Condomínio</option>
+          <option value="Conservação E Reparos">Conservação E Reparos</option>
+          <option value="Consultoria - Serviços Terceirizados">Consultoria - Serviços Terceirizados</option>
+          <option value="Contribuição Sindical">Contribuição Sindical</option>
+          <option value="Contribuição Social">Contribuição Social</option>
+          <option value="Convênio Farmácia">Convênio Farmácia</option>
+          <option value="Correios">Correios</option>
+          <option value="Coleta De Resíduos">Coleta De Resíduos</option>
+          <option value="Combustível">Combustível</option>
+          <option value="Compra De Imobilizado">Compra De Imobilizado</option>
+          <option value="Cursos E Eventos">Cursos E Eventos</option>
+          <option value="Deslocamento">Deslocamento</option>
+          <option value="Despesas De Infra Estrutura">Despesas De Infra Estrutura</option>
+          <option value="Despesas Funerárias">Despesas Funerárias</option>
+          <option value="Despesas Legais E Judiciais">Despesas Legais E Judiciais</option>
+          <option value="Dietas">Dietas</option>
+          <option value="Distribuição De Lucros E Resultados">Distribuição De Lucros E Resultados</option>
+          <option value="Doações">Doações</option>
+          <option value="Doações Para Instituições Filantrópicas">Doações Para Instituições Filantrópicas</option>
+          <option value="Empréstimos Bancários">Empréstimos Bancários</option>
+          <option value="Energia Alternativa">Energia Alternativa</option>
+          <option value="Energia Elétrica">Energia Elétrica</option>
+          <option value="Entrega De Materiais">Entrega De Materiais</option>
+          <option value="Equipamentos De Informática">Equipamentos De Informática</option>
+          <option value="Esterilização De Materiais">Esterilização De Materiais</option>
+          <option value="Eventos E Confraternizações">Eventos E Confraternizações</option>
+          <option value="FGTS">FGTS</option>
+          <option value="Financiamentos - Consórcios">Financiamentos - Consórcios</option>
+          <option value="Fraldas Descartáveis">Fraldas Descartáveis</option>
+          <option value="Férias">Férias</option>
+          <option value="Gas De Cozinha">Gas De Cozinha</option>
+          <option value="INSS">INSS</option>
+          <option value="INSS Depósito Judicial">INSS Depósito Judicial</option>
+          <option value="IOF">IOF</option>
+          <option value="IOF Operação Exterior">IOF Operação Exterior</option>
+          <option value="IPTU">IPTU</option>
+          <option value="IPVA - Licenciamento De Veículos">IPVA - Licenciamento De Veículos</option>
+          <option value="IRRF">IRRF</option>
+          <option value="IRPJ">IRPJ</option>
+          <option value="Jornais - Revistas Técnicas - Periódicos">Jornais - Revistas Técnicas - Periódicos</option>
+          <option value="Juros S/ Conta Garantida">Juros S/ Conta Garantida</option>
+          <option value="Km Deslocamento">Km Deslocamento</option>
+          <option value="Lanches - Refeições">Lanches - Refeições</option>
+          <option value="Lanches Para Ações Internas">Lanches Para Ações Internas</option>
+          <option value="Liberação Recurso Judicial">Liberação Recurso Judicial</option>
+          <option value="Locação De Equipamentos">Locação De Equipamentos</option>
+          <option value="Locação De Impressoras">Locação De Impressoras</option>
+          <option value="Locação De Veículos">Locação De Veículos</option>
+          <option value="Material De Escritório">Material De Escritório</option>
+          <option value="Material De Informática">Material De Informática</option>
+          <option value="Material De Limpeza">Material De Limpeza</option>
+          <option value="Material De Limpeza E Conservação">Material De Limpeza E Conservação</option>
+          <option value="Materiais Descartáveis">Materiais Descartáveis</option>
+          <option value="Materiais Médicos">Materiais Médicos</option>
+          <option value="Materiais De Higiene - Paciente">Materiais De Higiene - Paciente</option>
+          <option value="Matéria Prima Processos Artesanais">Matéria Prima Processos Artesanais</option>
+          <option value="Medicamentos">Medicamentos</option>
+          <option value="Medicina E Segurança Do Trabalho">Medicina E Segurança Do Trabalho</option>
+          <option value="Mensalidade Jovem Aprendiz">Mensalidade Jovem Aprendiz</option>
+          <option value="Multas E Infrações Trabalhistas">Multas E Infrações Trabalhistas</option>
+          <option value="Móveis - Utensílios">Móveis - Utensílios</option>
+          <option value="Móveis E Utensílios">Móveis E Utensílios</option>
+          <option value="Outros Benefícios">Outros Benefícios</option>
+          <option value="Outros Créditos - Outras Receitas Não Operacionais">Outros Créditos - Outras Receitas Não Operacionais</option>
+          <option value="Programas De Benefício Aos Funcionários">Programas De Benefício Aos Funcionários</option>
+          <option value="Prêmios De Seguros - Sinistros">Prêmios De Seguros - Sinistros</option>
+          <option value="Publicidade E Propaganda">Publicidade E Propaganda</option>
+          <option value="Pensão Alimentícia">Pensão Alimentícia</option>
+          <option value="Pagamento De Empréstimos">Pagamento De Empréstimos</option>
+          <option value="REFIS">REFIS</option>
+          <option value="Reembolso - Estorno Clientes">Reembolso - Estorno Clientes</option>
+          <option value="Refeições E Lanches">Refeições E Lanches</option>
+          <option value="Remoção De Pacientes - Ambulância">Remoção De Pacientes - Ambulância</option>
+          <option value="Remuneração De Diretores - Sócios">Remuneração De Diretores - Sócios</option>
+          <option value="Remuneração Terceiros - PJ">Remuneração Terceiros - PJ</option>
+          <option value="Produção Médica">Produção Médica</option>
+          <option value="Responsabilidade Técnica">Responsabilidade Técnica</option>
+          <option value="Salários">Salários</option>
+          <option value="Seguros">Seguros</option>
+          <option value="Seguro De Automóvel">Seguro De Automóvel</option>
+          <option value="Seguro De Vida">Seguro De Vida</option>
+          <option value="Taxa Administrativa - Cooperativa">Taxa Administrativa - Cooperativa</option>
+          <option value="Taxa De Fiscalização Sanitária">Taxa De Fiscalização Sanitária</option>
+          <option value="Tarifa Pagamento De Salários">Tarifa Pagamento De Salários</option>
+          <option value="Tarifas Bancárias">Tarifas Bancárias</option>
+          <option value="Telecomunicações">Telecomunicações</option>
+          <option value="Treinamentos E Cursos (RH)">Treinamentos E Cursos (RH)</option>
+          <option value="Uniformes E Funcionais">Uniformes E Funcionais</option>
+          <option value="Vale Alimentação - Refeição">Vale Alimentação - Refeição</option>
+          <option value="Vale Combustivel">Vale Combustivel</option>
+          <option value="Vale Transporte">Vale Transporte</option>
+          <option value="Veículos">Veículos</option>
+          <option value="Venda De Ativos">Venda De Ativos</option>
+          <option value="Visitas De Ambiência">Visitas De Ambiência</option>
+          <option value="Transferência Entre Contas - Matriz X Filial">Transferência Entre Contas - Matriz X Filial</option>
+          <option value="Transporte MATMED - Frete">Transporte MATMED - Frete</option>
+          <option value="UBER - TAXI">UBER - TAXI</option>               
+        </select>
+        <textarea id="relato" placeholder="Descreva um breve relato (mínimo 50 caracteres)" required></textarea>
+        
+      </div>
+    </div>
+    
+    <!-- Download e Mesclagem (sem o campo de nome do arquivo) -->
+    <div id="download" class="container">
+      <h2>Download e Mesclagem</h2>
+      <div class="formulario">
+        <button class="button" id="baixarArquivo">Visualizar Arquivo</button>
+        <hr>
+        <label for="pdfFiles">Selecione os PDFs para mesclar:</label>
+        <input type="file" id="pdfFiles" accept="application/pdf" multiple>
+        <button class="button" id="mesclarArquivo">Mesclar Arquivo</button>
+        <div id="mergeResult"></div>
+      </div>
+    </div>
+
+    <!-- Organização da Ordem dos PDFs -->
+    <div id="pdfOrderContainer" class="container" style="display: none;">
+      <h2>Organize a Ordem dos PDFs</h2>
+      <p>Arraste e solte para reordenar:</p>
+      <ul id="pdfOrderList" class="pdf-order-list"></ul>
+      <button class="button" id="saveOrderButton">Salvar Ordem</button>
+    </div>
+  </div>
+</div>
+
+<div id="nome-arquivo-container" class="container">
+  <h2>Nome do Arquivo</h2>
+  <div class="formulario">
+    <input type="text" id="nomeArquivo" readonly style="width:100%; padding:0.5rem; margin-top:0.5rem;"/>
+    <button class="button" id="copiarNomeArquivo" style="margin-top:0.5rem;">Copiar Nome</button>
+  </div>
+</div>
+
+<!-- Área de Pré-visualização -->
+<div id="preview-container" class="container">
+  <h2>Autorização de Pagamento</h2>
+  <div id="printPreview"></div>
+  <button class="button" id="printButton">Download (Print)</button>
+</div>
+  
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <p>&copy; 2025 Pedilar Domiciliar. Todos os direitos reservados.</p>
+    <p>Contato: ti@pedilar.com.br | Telefone: (31) 3273-2017</p>
+    <p>by Abner Esquarcio</p>
+  </div>
+</footer>
+  
+<!-- Script principal -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
